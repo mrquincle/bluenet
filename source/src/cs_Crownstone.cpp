@@ -1059,6 +1059,73 @@ void Crownstone::startHFClock() {
 	LOGd("HF clock started");
 }
 
+extern "C" {
+
+	//unsigned long _ebss;
+	extern unsigned long __bss_start__;
+	extern unsigned long __bss_end__;
+
+	extern unsigned long __HeapBase;
+	extern unsigned long __HeapLimit;
+	
+	extern unsigned long __StackTop;
+	extern unsigned long __StackLimit;
+
+//	unsigned long _heap_start;
+//
+//	unsigned long _heap_end;
+
+    /*
+	 * Most of these variables are set in gcc_startup_nrf52.S. For example __StackTop is set as ORIGIN(RAM) plus 
+	 * LENGTH(RAM) and hence starts from the end of RAM. The variable __StackLimit is set to __StackTop minus the
+	 * size of ".stack_dummy".
+	 *
+	 * If the macro __STARTUP_CLEAR_BSS is set the BSS section will be cleared. This is not done because this is 
+	 * usually done in C library startup code anyway. The code in the startup file calls SystemInit and _start.
+	 */
+	void show() {
+		LOGi("Show memory");
+//		static char *heap_end = (char *)&_ebss;
+//		static char *heap_end = (char *)&__bss_end__;
+		
+		LOGi("bss start: %p", &__bss_start__);
+		LOGi("bss end: %p", &__bss_end__);
+		
+		LOGi("Heap begin: %p", &__HeapBase);
+		LOGi("Heap end: %p", &__HeapLimit);
+
+		LOGi("Stack begin: %p", &__StackTop);
+		LOGi("Stack end: %p", &__StackLimit);
+
+		//LOGd("End of bss section: %lu", _ebss);
+
+		//LOGd("Heap start: %lu", _heap_start);
+		//LOGd("Heap end: %lu", _heap_end);
+//	 	LOGd("Heap end: %lu", heap_end);
+	}
+
+}
+
+void Crownstone::test_memory() {
+    int blockSize = 256;
+    int i = 1;
+
+    LOGd("Checking memory with blocksize %d char ...", blockSize);
+    while (true) {
+        char *p = (char *) malloc(i * blockSize);
+        //char *p = new char[i * blockSize];
+        if (p == NULL) {
+            break;
+        } else {
+            LOGd("%d @ 0x%08X", i * blockSize, p);
+        }
+        free(p);
+		//delete [] p;
+        ++i;
+    }
+    LOGd("Ok for %d char", (i - 1) * blockSize);
+}
+
 /**********************************************************************************************************************
  * The main function. Note that this is not the first function called! For starters, if there is a bootloader present,
  * the code within the bootloader has been processed before. But also after the bootloader, the code in
@@ -1141,6 +1208,9 @@ int main() {
 //	}
 
 	Crownstone crownstone(board);
+
+	show();
+	crownstone.test_memory();
 
 	overwrite_hardware_version();
 

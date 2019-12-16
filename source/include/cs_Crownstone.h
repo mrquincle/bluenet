@@ -93,6 +93,11 @@ public:
 		ptr->tick();
 	}
 
+	/** Test memory functions.
+	 *
+	 * The protection measures. Should only be used in development mode.
+	 */
+	void test_memory();
 protected:
 
 	/** initialize drivers (stack, timer, storage, pwm, etc), loads settings from storage.
